@@ -1,181 +1,63 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/branding/LOGO_BRUTAL_WHT.png">
-    <img src="docs/branding/LOGO_BRUTAL_BLK.png" alt="BRUTAL" width="360">
-  </picture>
-</p>
+# JigsawEngine
 
-# BRUTAL Framework
+**Build worlds with complicated rules. Keep every millisecond accountable.**
 
-**A free, open source C# framework for making games, or your own game engine.**
+JigsawEngine is an **experimental, performance-first game-engine project** for CPU-intensive games, simulation-heavy worlds and interactive experiences with many interconnected systems. A shooter with sophisticated AI, destruction, ballistics and streaming can be just as demanding as a large open world. Both are within the design target.
 
-BRUTAL is a framework. You can make a game directly with it, or use it as the foundation for a separate engine. We made Kitten Space Agency directly on BRUTAL. Ludeon built their Waylith engine on it to move RimWorld off Unity.
+> [!IMPORTANT]
+> **Early architecture stage.** JigsawEngine is not yet a complete or benchmark-validated game engine. The goals below are design targets, not shipped features, performance guarantees or evidence that JigsawEngine outperforms existing engines.
 
-At its core is a custom interop layer giving C# direct access to native APIs and libraries. Around that we've built mathematics, memory management, strings, collections, job scheduling, logging, localization, and bindings for Vulkan, GLFW, Dear ImGui, FMOD, RakNet, Jolt and Box2D. BRUTAL doesn't make the architectural decisions for you. You write your own stack. You can use whatever NuGet packages you want, including third-party ones.
+## The ambition
 
-It's called BRUTAL for a reason. In some ways it's much harder to use than Unity, Unreal or Godot. In other ways, particularly if you're doing something unusual, it's considerably easier. You actually have to know what you want to do first.
+Make ambitious games without making their systems fight each other for CPU time.
 
-## Why
+- **Frame-time discipline over headline FPS.** Design for stable p95/p99 frame times, observable stalls and explicit budgets.
+- **Data locality first.** Prefer contiguous, iteration-friendly data for hot systems; profile before choosing specialized representations.
+- **Parallelism with boundaries.** Schedule independent work while making dependencies, ownership and synchronization visible.
+- **Systems that compose.** AI, physics, gameplay, streaming, animation, rendering preparation and audio should have explicit contracts.
+- **Optimization with evidence.** Benchmark representative workloads, record hardware and configurations, and require correctness tests before accepting low-level optimizations.
+- **Scale both ways.** Support dense small arenas and large streamed environments without assuming every game needs the same architecture.
 
-You are only as independent as your tools are.
+## What it is today
 
-Developers have surrendered an extraordinary amount of control over their work to companies whose interests are not necessarily aligned with their own. We're not suggesting everyone should make their own game engine. We're suggesting every developer should have the option to, without having to spend four years building the foundations first.
+This repository currently contains a **fork of the [BRUTAL framework](https://github.com/ahwootech/BRUTAL)**. BRUTAL provides low-level C#/.NET building blocks including memory management, concurrency, native interop, Vulkan bindings, physics integrations and other systems. It is **not** a complete editor, scene system or JigsawEngine runtime.
 
-What that means in practice:
+JigsawEngine's planned engine-specific layers, benchmarks and sample game are described in the documents below. **They have not been implemented by this documentation overhaul.** Existing `Brutal.*` libraries are inherited foundation code; do not attribute the original framework or its production claims to JigsawEngine.
 
-- **Free, including for commercial games.** No royalties. We don't want a percentage of your game's revenue. We ask for credit.
-- **Open source.** The source is here under an MIT-based licence. If one day we stop being accountable to developers, you can fork it and go your own way.
-- **Deliberately small.** We do a few low-level things well: interop, memory, concurrency, maths, strings, and bindings to native libraries, on the latest C# and Vulkan. We avoid allocations and unnecessary overhead and use unmanaged memory and unsafe code where it makes sense.
-- **A foundation, like a kernel.** Think of the Linux kernel and something like Ubuntu. It's not an exact comparison, but it gets the idea across. We provide the foundation and you build your own systems on top.
+## Intended technical direction
 
-### What BRUTAL is not
-
-BRUTAL is not trying to be a general-purpose engine. There is no editor, no scene graph and no renderer, and we're not adding them. We push back on efforts to add more, because adding everything is how the industry ended up with the kind of engines we don't want to use. Pull requests that drift away from a clear purpose will be rejected.
-
-## Projects using BRUTAL
-
-| Product | Studio | Engine (if any) |
-| --- | --- | --- |
-| [RimWorld](https://store.steampowered.com/app/294100/RimWorld/) | Ludeon Studios | Waylith |
-| [Kitten Space Agency](https://ahwoo.com/app/100000/kitten-space-agency/) | RocketWerkz | Direct on BRUTAL |
-| Torpedia | RocketWerkz | Direct on BRUTAL |
-| Art of the Rail | RocketWerkz | Direct on BRUTAL |
-| [Gruntz](https://www.youtube.com/watch?v=ROB5IilenZE) | RocketWerkz | Direct on BRUTAL |
-| Afterskies | Floating Origin Interactive | Direct on BRUTAL |
-
-Ludeon report 2 to 4 times the performance of the Unity build in their own tests, with the vast majority of existing mods still compatible. See their [Steam announcement](https://steamcommunity.com/games/294100/announcements/detail/672882362547178634).
-
-Kitten Space Agency is a free pre-alpha spaceflight simulation. It runs a solar system at real scale, and is the first major project built directly on BRUTAL. [Download it on Ahwoo](https://ahwoo.com/app/100000/kitten-space-agency/) and see the technology yourself.
-
-## What is in the box
-
-Each top-level folder in this repository is one library, published as a NuGet package. Reference only the ones you need.
-
-| Library | What it is |
+| Area | Approach |
 | --- | --- |
-| `Brutal.Core` | Base types, attributes, platform detection, pointer helpers, Roslyn analyzers |
-| `Brutal.Interop` | The custom interop layer that gives C# direct access to native APIs |
-| `Brutal.Memory` | Unmanaged memory management and allocators |
-| `Brutal.Collections` | Collections that don't allocate |
-| `Brutal.Strings` | String building and handling without allocation |
-| `Brutal.Maths`, `Brutal.Numerics` | Vector, matrix and numeric types |
-| `Brutal.Concurrency` | Job system and threading |
-| `Brutal.Logging` | Logging |
-| `Brutal.Localization` | Localization |
-| `Brutal.Vulkan`, `Brutal.Vulkan.Abstractions`, `Brutal.Vulkan.Vma` | Vulkan bindings, abstractions and the Vulkan Memory Allocator |
-| `Brutal.OpenGl` | OpenGL bindings |
-| `Brutal.ShaderC`, `Brutal.Slang` | Shader compilation |
-| `Brutal.Glfw`, `Brutal.Sdl`, `Brutal.Sdl.Image`, `Brutal.Sdl.Mixer`, `Brutal.Sdl.Ttf` | Windowing and input, with SDL's image, audio mixing and font add-ons |
-| `Brutal.ImGui`, `Brutal.ImGui.*`, `Brutal.ImPlot` | Dear ImGui and ImPlot bindings, docking branch |
-| `Brutal.Render.Mesh` | Mesh utilities |
-| `Brutal.Texture`, `Brutal.Texture.Abstractions`, `Brutal.Ktx`, `Brutal.Gli`, `Brutal.Stb` | Texture loading, KTX and compressed formats, image decoding |
-| `Brutal.Gltf`, `Brutal.MeshOptimizer` | glTF loading and mesh optimisation |
-| `Brutal.FreeType` | Font rasterisation |
-| `Brutal.Fmod`, `Brutal.OpenAl` | Audio |
-| `Brutal.RakNet` | Networking |
-| `Brutal.Jolt`, `Brutal.Box2D` | 3D and 2D physics |
-| `Brutal.Monitor.Common`, `Brutal.Monitor.Host`, `Brutal.RenderDoc`, `Brutal.RenderDoc.ImGui` | Runtime monitoring and RenderDoc capture integration |
-| `Brutal.NativeFileDialog`, `Brutal.NotCurses`, `Brutal.ZLib` | Native file dialogs, terminal UI, compression |
+| **Primary language** | C# / .NET 10 for engine orchestration and gameplay systems; selective native interop only where measurement justifies it |
+| **Foundation** | Existing BRUTAL fork, initially preserved rather than aggressively rewritten |
+| **Scheduling** | Explicit task graph, dependencies and worker-thread budgets, built on evaluated existing primitives |
+| **Simulation** | Fixed-step simulation where appropriate, with configurable substeps and deterministic testing for selected systems |
+| **World representation** | Data-oriented storage for high-frequency components; stable handles and clear structural-change rules |
+| **Rendering** | Evaluate the inherited Vulkan interfaces; keep render preparation and GPU work separated from simulation |
+| **Instrumentation** | CPU scopes, allocation counts, job wait time, frame-time percentiles and reproducible scenario benchmarks |
+| **Target games** | Systems-heavy shooters, immersive simulations and large-scale streamed games |
 
-Third-party notices for each library live in its `LICENSES` folder, `Brutal.ImGui/LICENSES` say.
+A job system or ECS is **not** a substitute for measurement. Performance comes from understanding the workload, data access and synchronization costs.
 
-## Getting started
+## Start here
 
-### Prerequisites
+- [Engine architecture](docs/JIGSAW_ARCHITECTURE.md) — module boundaries, execution model and technical decisions
+- [Performance charter](docs/PERFORMANCE_CHARTER.md) — budgets, profiling rules and benchmark design
+- [Delivery roadmap](docs/JIGSAW_ROADMAP.md) — phased work and acceptance criteria
+- [BRUTAL upstream](https://github.com/ahwootech/BRUTAL) — original foundation and documentation
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- A Vulkan 1.3 capable GPU with current drivers (if you render)
-- The [Vulkan SDK](https://vulkan.lunarg.com/) if you want validation layers while developing
-- Windows or Linux
+## First playable proof
 
-### Your first window
+The first proposed validation project is a **systems-heavy shooter testbed**: agents with perception and decision-making, projectiles, collision queries, animation state, streaming pressure and debug overlays. It should stress interacting systems—not just draw thousands of inert objects.
 
-Create a project and add Core and Glfw:
+The milestone is successful when it can be built and run reproducibly, produces a per-system frame-time breakdown and meets a documented baseline on named hardware. No target FPS is promised before a baseline exists.
 
-```sh
-dotnet new console -n HelloBrutal
-cd HelloBrutal
-dotnet add package Ahwoo.Brutal.Core
-dotnet add package Ahwoo.Brutal.Glfw
-```
+## Building the existing foundation
 
-Replace `Program.cs`:
+The upstream framework's libraries use .NET 10 and may require native dependencies, SDKs or hardware depending on the package. See the [original BRUTAL documentation](https://github.com/ahwootech/BRUTAL) for usage and prerequisites. There is not yet a single supported `dotnet run` command for a JigsawEngine editor or playable game.
 
-```csharp
-using Brutal.GlfwApi;
-using Brutal.Numerics;
+## Origins, credits and licensing
 
-if (!Glfw.Init())
-    throw new Exception("Failed to initialize GLFW");
+JigsawEngine is being developed **from a fork of BRUTAL**, not as an independently authored replacement for it. The original framework, its authors and contributors deserve explicit credit. Existing `LICENSE.txt`, `NOTICE.txt`, third-party licenses and upstream source notices remain in place and govern the inherited material. Any future JigsawEngine-specific contributions must respect those terms. BRUTAL's existing product claims and examples belong to BRUTAL, not JigsawEngine.
 
-Glfw.WindowHint(GlfwWindowHint.ClientApi, 0);
-var window = Glfw.CreateWindow(new GlfwWindow.CreateInfo
-{
-    Title = "Hello BRUTAL",
-    Size = new int2(1280, 720),
-});
-
-while (!window.ShouldClose)
-    Glfw.PollEvents();
-
-Glfw.Terminate();
-```
-
-```sh
-dotnet run
-```
-
-That opens a window with no graphics API. What you add next is up to you:
-
-- **Rendering:** `Ahwoo.Brutal.Vulkan.Abstractions` and `Ahwoo.Brutal.Vulkan.Vma` for a Vulkan renderer, `Ahwoo.Brutal.ShaderC` to compile shaders at runtime.
-- **Debug UI:** `Ahwoo.Brutal.ImGui` and `Ahwoo.Brutal.ImPlot`.
-- **Parallelism:** `Ahwoo.Brutal.Concurrency` for the job system.
-- **Audio and networking:** `Ahwoo.Brutal.Fmod`, `Ahwoo.Brutal.RakNet`.
-
-Questions and "how do I" threads go on the [Guides and Help forum](https://forums.ahwoo.com/forums/brutal/guides-and-help/).
-
-### Building from source
-
-This is the source for every published package. Project files, a solution and build scripts are coming. Until then use the NuGet packages, and use this repository to read and fork the code.
-
-```sh
-git clone https://github.com/ahwootech/BRUTAL.git
-```
-
-## Licence
-
-BRUTAL is free to use, modify and distribute, including in commercial games. There are no royalties and we don't want a percentage of your game's revenue.
-
-The licence is based on MIT with an added attribution requirement. A game or product built with BRUTAL:
-
-1. includes the BRUTAL copyright notice in its credits screen, or equivalent (section 2.1)
-2. shows the BRUTAL logo before gameplay starts (section 2.2)
-3. ships `NOTICE.txt` alongside the product (section 2.3)
-
-If you don't want to do that, we can arrange a separate commercial licence. We also waive the logo requirement for non-profit projects and where displaying it would be detrimental to the application's purpose.
-
-BRUTAL is open source. There are already OSI-approved licences that allow graphical attribution. Ours is not yet OSI approved because we have not submitted it yet. We intend to, and to develop the licence with community feedback. See [LICENSE.txt](LICENSE.txt) for the full text.
-
-Third-party components keep their own licences. Section 4.0 points at the `LICENSES` folder at the root of each NuGet package; in this repository, those notices are in the `LICENSES` folder of each library that redistributes them.
-
-## Contributing
-
-You can submit PRs and issues. We are a small team and maintaining a public framework is going to be a lot of work, so please be patient with us. We'll see what happens, assess the problems, and change our workflows as necessary. What won't change is BRUTAL's scope.
-
-Before opening a PR, read [CONTRIBUTING.md](CONTRIBUTING.md). It covers scope, what we expect from AI-assisted contributions, the contribution grant in section 5.0 of the licence, and the sign-off every commit needs. Small changes you understand and have tested, with a clear purpose, are the ones that will get merged.
-
-- Security issues: report them privately, see [SECURITY.md](SECURITY.md). Don't open a public issue.
-- Conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
-
-## Community
-
-- Source: https://github.com/ahwootech/BRUTAL
-- NuGet packages: https://www.nuget.org/profiles/Ahwoo
-- Forums: https://forums.ahwoo.com/forums/brutal/
-- Discord: https://discord.gg/MEuNTYbAh8
-
-## Credits
-
-BRUTAL was made by the RocketWerkz Enterprise team and others, named in [CONTRIBUTORS.md](CONTRIBUTORS.md). When we talk about wanting credit for BRUTAL, these are the people we are talking about.
-
-BRUTAL is Copyright (c) 2024 Ahwoo Limited.
+**Build complex worlds. Measure everything.**
